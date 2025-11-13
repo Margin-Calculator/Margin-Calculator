@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Margin Calculator</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:2rem;max-width:720px}
+    label{display:block;margin:0.5rem 0}
+    input[type="number"]{width:160px;padding:6px}
+    .result{margin-top:1rem;padding:12px;border-radius:8px;background:#f6f6f6}
+    button{padding:8px 12px;border-radius:6px;cursor:pointer}
+    .row{display:flex;gap:1rem;align-items:center}
+  </style>
+</head>
+<body>
+  <h1>Margin Calculator</h1>
+  <p>Enter Cost Price and Selling Price. Click <em>Calculate</em>.</p>
+
+  <div class="row">
+    <label>Cost Price (CP): <input id="cp" type="number" step="any" value="100"></label>
+    <label>Selling Price (SP): <input id="sp" type="number" step="any" value="150"></label>
+  </div>
+
+  <div style="margin-top:1rem">
+    <button id="calc">Calculate</button>
+    <button id="clear" style="margin-left:8px">Clear</button>
+  </div>
+
+  <div id="result" class="result" aria-live="polite"></div>
+
+  <script>
+    function fmt(n){ return Number.isFinite(n) ? n.toFixed(2) : '-' }
+    function calculate(cp, sp){
+      const profit = sp - cp;
+      const marginPercent = sp ? (profit / sp) * 100 : NaN;
+      const markupPercent = cp ? (profit / cp) * 100 : NaN;
+      return { profit, marginPercent, markupPercent };
+    }
+    document.getElementById('calc').addEventListener('click', () => {
+      const cp = parseFloat(document.getElementById('cp').value) || 0;
+      const sp = parseFloat(document.getElementById('sp').value) || 0;
+      const r = calculate(cp, sp);
+      document.getElementById('result').innerHTML = `
+        <div><strong>Profit:</strong> ${fmt(r.profit)}</div>
+        <div><strong>Margin:</strong> ${fmt(r.marginPercent)}%</div>
+        <div><strong>Markup:</strong> ${fmt(r.markupPercent)}%</div>
+      `;
+    });
+    document.getElementById('clear').addEventListener('click', () => {
+      document.getElementById('cp').value = '';
+      document.getElementById('sp').value = '';
+      document.getElementById('result').innerHTML = '';
+    });
+  </script>
+</body>
+</html>

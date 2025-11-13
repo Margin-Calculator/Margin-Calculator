@@ -1,57 +1,146 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Margin Calculator</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <title>Advanced Margin Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:2rem;max-width:720px}
-    label{display:block;margin:0.5rem 0}
-    input[type="number"]{width:160px;padding:6px}
-    .result{margin-top:1rem;padding:12px;border-radius:8px;background:#f6f6f6}
-    button{padding:8px 12px;border-radius:6px;cursor:pointer}
-    .row{display:flex;gap:1rem;align-items:center}
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem auto; max-width: 800px; padding: 0 1rem; }
+    h1 { text-align: center; }
+    .tabs { display: flex; justify-content: center; margin-bottom: 1rem; }
+    .tab { padding: 0.5rem 1rem; cursor: pointer; border: 1px solid #ddd; border-bottom: none; background: #f0f0f0; }
+    .tab.active { background: white; font-weight: bold; }
+    .tab-content { display: none; border: 1px solid #ddd; padding: 1rem; background: white; }
+    .tab-content.active { display: block; }
+    label { display: block; margin: 0.75rem 0; }
+    input[type="number"], select { width: 100%; max-width: 200px; padding: 8px; box-sizing: border-box; }
+    .row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+    button { padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; background: #007bff; color: white; }
+    button:hover { background: #0056b3; }
+    .secondary { background: #6c757d; margin-left: 0.5rem; }
+    .result { margin-top: 1.5rem; padding: 1rem; border-radius: 8px; background: #f8f9fa; border: 1px solid #dee2e6; }
+    @media (max-width: 600px) { .row { flex-direction: column; } input, select { max-width: none; } }
   </style>
 </head>
 <body>
-  <h1>Margin Calculator</h1>
-  <p>Enter Cost Price and Selling Price. Click <em>Calculate</em>.</p>
-
-  <div class="row">
-    <label>Cost Price (CP): <input id="cp" type="number" step="any" value="100"></label>
-    <label>Selling Price (SP): <input id="sp" type="number" step="any" value="150"></label>
+  <h1>Advanced Margin Calculator</h1>
+  <p>Calculate profit, margin, markup, or required prices. Supports multiple currencies.</p>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="basic">Basic Calc</div>
+    <div class="tab" data-tab="margin">By Margin</div>
+    <div class="tab" data-tab="markup">By Markup</div>
   </div>
-
-  <div style="margin-top:1rem">
-    <button id="calc">Calculate</button>
-    <button id="clear" style="margin-left:8px">Clear</button>
+  
+  <div id="currency-select" style="margin-bottom:1rem;">
+    <label>Currency: 
+      <select id="currency">
+        <option value="₹">INR (₹)</option>
+        <option value="$">USD ($)</option>
+        <option value="€">EUR (€)</option>
+        <option value="£">GBP (£)</option>
+      </select>
+    </label>
   </div>
-
-  <div id="result" class="result" aria-live="polite"></div>
-
+  
+  <div class="tab-content active" id="basic">
+    <div class="row">
+      <label>Cost Price (CP): <input id="cp-basic" type="number" step="any" min="0" value="100" aria-label="Cost Price"></label>
+      <label>Selling Price (SP): <input id="sp-basic" type="number" step="any" min="0" value="150" aria-label="Selling Price"></label>
+    </div>
+    <button id="calc-basic">Calculate</button>
+    <button class="secondary" id="clear-basic">Clear</button>
+    <div id="result-basic" class="result" aria-live="polite"></div>
+  </div>
+  
+  <div class="tab-content" id="margin">
+    <div class="row">
+      <label>Cost Price (CP): <input id="cp-margin" type="number" step="any" min="0" value="100" aria-label="Cost Price"></label>
+      <label>Desired Margin (%): <input id="margin-pct" type="number" step="any" min="0" value="30" aria-label="Desired Margin Percentage"></label>
+    </div>
+    <button id="calc-margin">Calculate SP</button>
+    <button class="secondary" id="clear-margin">Clear</button>
+    <div id="result-margin" class="result" aria-live="polite"></div>
+  </div>
+  
+  <div class="tab-content" id="markup">
+    <div class="row">
+      <label>Cost Price (CP): <input id="cp-markup" type="number" step="any" min="0" value="100" aria-label="Cost Price"></label>
+      <label>Desired Markup (%): <input id="markup-pct" type="number" step="any" min="0" value="50" aria-label="Desired Markup Percentage"></label>
+    </div>
+    <button id="calc-markup">Calculate SP</button>
+    <button class="secondary" id="clear-markup">Clear</button>
+    <div id="result-markup" class="result" aria-live="polite"></div>
+  </div>
+  
   <script>
-    function fmt(n){ return Number.isFinite(n) ? n.toFixed(2) : '-' }
-    function calculate(cp, sp){
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    function getCurrency() { return document.getElementById('currency').value; }
+    function fmt(n, curr) { return Number.isFinite(n) ? `${curr}${n.toFixed(2)}` : '-'; }
+    function fmtPct(n) { return Number.isFinite(n) ? `${n.toFixed(2)}%` : '-'; }
+
+    function calculateBasic(cp, sp) {
       const profit = sp - cp;
-      const marginPercent = sp ? (profit / sp) * 100 : NaN;
-      const markupPercent = cp ? (profit / cp) * 100 : NaN;
+      const marginPercent = sp > 0 ? (profit / sp) * 100 : NaN;
+      const markupPercent = cp > 0 ? (profit / cp) * 100 : NaN;
       return { profit, marginPercent, markupPercent };
     }
-    document.getElementById('calc').addEventListener('click', () => {
-      const cp = parseFloat(document.getElementById('cp').value) || 0;
-      const sp = parseFloat(document.getElementById('sp').value) || 0;
-      const r = calculate(cp, sp);
-      document.getElementById('result').innerHTML = `
-        <div><strong>Profit:</strong> ${fmt(r.profit)}</div>
-        <div><strong>Margin:</strong> ${fmt(r.marginPercent)}%</div>
-        <div><strong>Markup:</strong> ${fmt(r.markupPercent)}%</div>
+
+    function calculateSPByMargin(cp, marginPct) {
+      if (marginPct >= 100) return { sp: Infinity, profit: Infinity, markupPercent: Infinity };
+      const sp = cp / (1 - marginPct / 100);
+      const profit = sp - cp;
+      const markupPercent = (profit / cp) * 100;
+      return { sp, profit, markupPercent };
+    }
+
+    function calculateSPByMarkup(cp, markupPct) {
+      const sp = cp * (1 + markupPct / 100);
+      const profit = sp - cp;
+      const marginPercent = (profit / sp) * 100;
+      return { sp, profit, marginPercent };
+    }
+
+    function handleCalc(idPrefix, calcFn) {
+      const cp = parseFloat(document.getElementById(`cp-${idPrefix}`).value) || 0;
+      const extra = parseFloat(document.getElementById(`${idPrefix === 'basic' ? 'sp' : idPrefix === 'margin' ? 'margin' : 'markup'}-pct` || `sp-${idPrefix}`).value) || 0;
+      if (cp < 0 || extra < 0) { alert('Values must be non-negative.'); return; }
+      const r = calcFn(cp, extra);
+      const curr = getCurrency();
+      const html = `
+        <div><strong>Cost Price:</strong> ${fmt(cp, curr)}</div>
+        ${idPrefix === 'basic' ? `<div><strong>Selling Price:</strong> ${fmt(extra, curr)}</div>` : ''}
+        ${idPrefix !== 'basic' ? `<div><strong>${idPrefix.charAt(0).toUpperCase() + idPrefix.slice(1)} %:</strong> ${fmtPct(extra)}</div>` : ''}
+        <div><strong>Selling Price:</strong> ${idPrefix === 'basic' ? fmt(extra, curr) : fmt(r.sp, curr)}</div>
+        <div><strong>Profit:</strong> ${fmt(r.profit, curr)}</div>
+        <div><strong>Margin:</strong> ${fmtPct(idPrefix === 'markup' ? r.marginPercent : r.marginPercent || (extra))}</div>
+        <div><strong>Markup:</strong> ${fmtPct(idPrefix === 'margin' ? r.markupPercent : r.markupPercent || (extra))}</div>
       `;
-    });
-    document.getElementById('clear').addEventListener('click', () => {
-      document.getElementById('cp').value = '';
-      document.getElementById('sp').value = '';
-      document.getElementById('result').innerHTML = '';
-    });
+      document.getElementById(`result-${idPrefix}`).innerHTML = html;
+    }
+
+    function handleClear(idPrefix) {
+      document.getElementById(`cp-${idPrefix}`).value = '';
+      if (idPrefix === 'basic') document.getElementById('sp-basic').value = '';
+      else document.getElementById(`${idPrefix}-pct`).value = '';
+      document.getElementById(`result-${idPrefix}`).innerHTML = '';
+    }
+
+    document.getElementById('calc-basic').addEventListener('click', () => handleCalc('basic', calculateBasic));
+    document.getElementById('clear-basic').addEventListener('click', () => handleClear('basic'));
+    document.getElementById('calc-margin').addEventListener('click', () => handleCalc('margin', calculateSPByMargin));
+    document.getElementById('clear-margin').addEventListener('click', () => handleClear('margin'));
+    document.getElementById('calc-markup').addEventListener('click', () => handleCalc('markup', calculateSPByMarkup));
+    document.getElementById('clear-markup').addEventListener('click', () => handleClear('markup'));
   </script>
 </body>
 </html>

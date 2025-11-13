@@ -112,7 +112,8 @@
 
     function handleCalc(idPrefix, calcFn) {
       const cp = parseFloat(document.getElementById(`cp-${idPrefix}`).value) || 0;
-      const extra = parseFloat(document.getElementById(`${idPrefix === 'basic' ? 'sp' : idPrefix === 'margin' ? 'margin' : 'markup'}-pct` || `sp-${idPrefix}`).value) || 0;
+      const extraId = idPrefix === 'basic' ? 'sp-basic' : `${idPrefix}-pct`;
+      const extra = parseFloat(document.getElementById(extraId).value) || 0;
       if (cp < 0 || extra < 0) { alert('Values must be non-negative.'); return; }
       const r = calcFn(cp, extra);
       const curr = getCurrency();
@@ -122,16 +123,16 @@
         ${idPrefix !== 'basic' ? `<div><strong>${idPrefix.charAt(0).toUpperCase() + idPrefix.slice(1)} %:</strong> ${fmtPct(extra)}</div>` : ''}
         <div><strong>Selling Price:</strong> ${idPrefix === 'basic' ? fmt(extra, curr) : fmt(r.sp, curr)}</div>
         <div><strong>Profit:</strong> ${fmt(r.profit, curr)}</div>
-        <div><strong>Margin:</strong> ${fmtPct(idPrefix === 'markup' ? r.marginPercent : r.marginPercent || (extra))}</div>
-        <div><strong>Markup:</strong> ${fmtPct(idPrefix === 'margin' ? r.markupPercent : r.markupPercent || (extra))}</div>
+        <div><strong>Margin:</strong> ${fmtPct(idPrefix === 'markup' ? r.marginPercent : r.marginPercent || extra)}</div>
+        <div><strong>Markup:</strong> ${fmtPct(idPrefix === 'margin' ? r.markupPercent : r.markupPercent || extra)}</div>
       `;
       document.getElementById(`result-${idPrefix}`).innerHTML = html;
     }
 
     function handleClear(idPrefix) {
       document.getElementById(`cp-${idPrefix}`).value = '';
-      if (idPrefix === 'basic') document.getElementById('sp-basic').value = '';
-      else document.getElementById(`${idPrefix}-pct`).value = '';
+      const extraId = idPrefix === 'basic' ? 'sp-basic' : `${idPrefix}-pct`;
+      document.getElementById(extraId).value = '';
       document.getElementById(`result-${idPrefix}`).innerHTML = '';
     }
 
